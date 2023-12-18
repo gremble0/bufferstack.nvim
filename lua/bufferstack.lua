@@ -34,10 +34,8 @@ local function shift_right(list)
   return list
 end
 
-
 ---@param buffer integer
 function M.add_buffer(buffer)
-  -- TODO: inplace?
   local new_buffers = { buffer }
 
   for i, buf in ipairs(M.buffers) do
@@ -51,29 +49,14 @@ end
 
 function M.bnext()
   local buffers = shift_right(M.buffers)
-  M.buffers = buffers
-  vim.api.nvim_set_current_buf(M.buffers[1])
+  vim.api.nvim_set_current_buf(buffers[1])
   M.buffers = buffers
 end
 
 function M.bprevious()
   local buffers = shift_left(M.buffers)
+  vim.api.nvim_set_current_buf(buffers[1])
   M.buffers = buffers
-  vim.api.nvim_set_current_buf(M.buffers[1])
-  M.buffers = buffers
-end
-
-function M.show()
-  for _, buf in ipairs(M.buffers) do
-    local bufname
-    if vim.api.nvim_buf_is_loaded(buf) then
-      bufname = vim.api.nvim_buf_get_name(buf)
-    else
-      bufname = "*DELETED*"
-    end
-    print(buf, bufname)
-  end
-  print("---------")
 end
 
 function M.setup()
