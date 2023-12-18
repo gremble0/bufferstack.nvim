@@ -3,32 +3,35 @@
 local M = {}
 
 local function shift_left(list)
-    local firstElement = list[1]
-
-    for i = 1, #list - 1 do
-        list[i] = list[i+1]
-    end
-
-    list[#list] = firstElement
-
+  if #list <= 1 then
     return list
+  end
+
+  local first = list[1]
+
+  for i = 1, #list - 1 do
+      list[i] = list[i + 1]
+  end
+
+  list[#list] = first
+
+  return list
 end
 
 local function shift_right(list)
-  local out = {}
-  local length = #list
-
-  if length == 0 then
-    return out
+  if #list <= 1 then
+    return list
   end
 
-  out[1] = list[length]
+  local last = list[#list]
 
-  for i = 1, length - 1 do
-    out[i + 1] = list[i]
+  for i = #list, 2, - 1 do
+    list[i] = list[i - 1]
   end
 
-  return out
+  list[1] = last
+
+  return list
 end
 
 
