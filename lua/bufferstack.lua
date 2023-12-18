@@ -2,6 +2,36 @@
 ---@field buffers integer[]
 local M = {}
 
+local function shift_left(list)
+    local firstElement = list[1]
+
+    for i = 1, #list - 1 do
+        list[i] = list[i+1]
+    end
+
+    list[#list] = firstElement
+
+    return list
+end
+
+local function shift_right(list)
+  local out = {}
+  local length = #list
+
+  if length == 0 then
+    return out
+  end
+
+  out[1] = list[length]
+
+  for i = 1, length - 1 do
+    out[i + 1] = list[i]
+  end
+
+  return out
+end
+
+
 ---@param buffer integer
 function M.add_buffer(buffer)
   -- TODO: inplace?
@@ -17,34 +47,17 @@ function M.add_buffer(buffer)
 end
 
 function M.bnext()
-  if #M.buffers <= 1 then
-    return
-  end
-
-  vim.api.nvim_set_current_buf(M.buffers[#M.buffers])
-  local cur_buffer = M.buffers[1]
-
-  for i = 1, #M.buffers - 1 do
-    M.buffers[i] = M.buffers[i + 1]
-  end
-
-  M.buffers[#M.buffers] = cur_buffer
+  local buffers = shift_right(M.buffers)
+  M.buffers = buffers
+  vim.api.nvim_set_current_buf(M.buffers[1])
+  M.buffers = buffers
 end
 
 function M.bprevious()
-  if #M.buffers <= 1 then
-    return
-  end
-
-  vim.api.nvim_set_current_buf(M.buffers[2])
-  local new_buffers = {}
-  new_buffers[1] = M.buffers[#M.buffers]
-
-  for i = 1, #M.buffers - 1 do
-    new_buffers[i + 1] = M.buffers[i]
-  end
-
-  M.buffers = new_buffers
+  local buffers = shift_left(M.buffers)
+  M.buffers = buffers
+  vim.api.nvim_set_current_buf(M.buffers[1])
+  M.buffers = buffers
 end
 
 function M.show()
