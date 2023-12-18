@@ -42,6 +42,17 @@ local function shift_right(list)
   return list
 end
 
+---Deletes buffers that are no longer valid
+function M.sync()
+  for i, buf in ipairs(M.buffers) do
+    if not vim.api.nvim_buf_is_valid(buf) then
+      for j = i, #M.buffers do
+        M.buffers[j] = M.buffers[j + 1]
+      end
+    end
+  end
+end
+
 ---Adds the buffer to the front of the internal stack of open buffers
 ---@param buffer integer
 function M.push_front(buffer)
@@ -59,6 +70,7 @@ end
 ---Updates the internal stack of buffers by shifting it to the right
 ---and sets the current buffer to the new element at the front
 function M.bnext()
+  M.sync()
   local buffers = shift_right(M.buffers)
   vim.api.nvim_set_current_buf(buffers[1])
   M.buffers = buffers
@@ -67,14 +79,15 @@ end
 ---Updates the internal stack of buffers by shifting it to the left
 ---and sets the current buffer to the new element at the front
 function M.bprevious()
+  M.sync()
   local buffers = shift_left(M.buffers)
   vim.api.nvim_set_current_buf(buffers[1])
   M.buffers = buffers
 end
 
 ---@class BufferStackOpts
----@field bprevious string? keybind to use for the bprevious command
----@field bnext string? keybind to use for the bnext command
+---@field bprevious? string keybind to use for the bprevious command
+---@field bnext? string keybind to use for the bnext command
 
 ---@param opts BufferStackOpts
 function M.setup(opts)
@@ -92,7 +105,7 @@ function M.setup(opts)
       vim.keymap.set("n", opts.bprevious, M.bprevious, { desc = "Changes to the previous buffer" })
     end
     if opts.bprevious ~= nil then
-      vim.keymap.set("n", opts.bnext, M.bprevious, { desc = "Changes to the next buffer" })
+      vim.keymap.set("n", opts.bnext, M.bnext, { desc = "Changes to the next buffer" })
     end
   end
 end
