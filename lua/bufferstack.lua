@@ -72,7 +72,12 @@ function M.bprevious()
   M.buffers = buffers
 end
 
-function M.setup()
+---@class BufferStackOpts
+---@field bprevious string? keybind to use for the bprevious command
+---@field bnext string? keybind to use for the bnext command
+
+---@param opts BufferStackOpts
+function M.setup(opts)
   M.buffers = {}
 
   local buffer_stack_group = vim.api.nvim_create_augroup("BufferStack", {})
@@ -80,6 +85,16 @@ function M.setup()
     group = buffer_stack_group,
     callback = function() M.push_front(vim.api.nvim_get_current_buf()) end
   })
+
+  if opts ~= nil then
+    -- in case the user only wants one of these functions we make them nullable
+    if opts.bprevious ~= nil then
+      vim.keymap.set("n", opts.bprevious, M.bprevious, { desc = "Changes to the previous buffer" })
+    end
+    if opts.bprevious ~= nil then
+      vim.keymap.set("n", opts.bnext, M.bprevious, { desc = "Changes to the next buffer" })
+    end
+  end
 end
 
 return M
