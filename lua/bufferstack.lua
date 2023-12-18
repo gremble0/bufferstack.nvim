@@ -17,20 +17,12 @@ function M.add_buffer(buffer)
 end
 
 function M.bnext()
-  -- local next_buffer = M.buffers[#M.buffers]
-  -- local new_buffers = { next_buffer }
-  -- vim.api.nvim_set_current_buf(next_buffer)
-  --
-  -- for i = 2, #M.buffers do
-  --   new_buffers[i] = M.buffers[i - 1]
-  -- end
-  --
-  -- M.buffers = new_buffers
-  local cur_buffer = M.buffers[1]
-
   if #M.buffers <= 1 then
     return
   end
+
+  vim.api.nvim_set_current_buf(M.buffers[#M.buffers])
+  local cur_buffer = M.buffers[1]
 
   for i = 1, #M.buffers - 1 do
     M.buffers[i] = M.buffers[i + 1]
@@ -40,24 +32,11 @@ function M.bnext()
 end
 
 function M.bprevious()
-  --TODO FIX
-  -- local previous_buffer = M.buffers[2]
-  -- if previous_buffer == nil then return end
-  -- local new_buffers = {}
-  -- vim.api.nvim_set_current_buf(previous_buffer)
-  --
-  -- for i = 2, #M.buffers do
-  --   new_buffers[i - 1] = M.buffers[i]
-  -- end
-  --
-  -- new_buffers[#new_buffers + 1] = M.buffers[1]
-  --
-  -- M.buffers = new_buffers
-
   if #M.buffers <= 1 then
     return
   end
 
+  vim.api.nvim_set_current_buf(M.buffers[2])
   local new_buffers = {}
   new_buffers[1] = M.buffers[#M.buffers]
 
