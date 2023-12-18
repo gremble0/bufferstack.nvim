@@ -1,48 +1,12 @@
+local utils = require("utils")
+
 ---@class BufferStack
 ---@field buffers integer[]
 local M = {}
 
----Shifts all elements in the given list one step to the left,
----leftmost element goes to the back
----@param list any[]
----@return any[]
-local function shift_left(list)
-  if #list <= 1 then
-    return list
-  end
-
-  local first = list[1]
-
-  for i = 1, #list -1 do
-      list[i] = list[i + 1]
-  end
-
-  list[#list] = first
-
-  return list
-end
-
----Shifts all elements in the given list one step to the right,
----rightmost element goes to the front
----@param list any[]
----@return any[]
-local function shift_right(list)
-  if #list <= 1 then
-    return list
-  end
-
-  local last = list[#list]
-
-  for i = #list, 2, -1 do
-    list[i] = list[i - 1]
-  end
-
-  list[1] = last
-
-  return list
-end
-
----Deletes buffers that are no longer valid
+---Deletes buffers that are no longer valid. Ideally would not be necessary
+---but there are no autocmds that reliably triggers when we need to remove
+---a specific buffer from the stack
 function M.sync()
   for i, buf in ipairs(M.buffers) do
     if not vim.api.nvim_buf_is_valid(buf) then
@@ -71,7 +35,7 @@ end
 ---and sets the current buffer to the new element at the front
 function M.bnext()
   M.sync()
-  local buffers = shift_right(M.buffers)
+  local buffers = utils.shift_right(M.buffers)
   vim.api.nvim_set_current_buf(buffers[1])
   M.buffers = buffers
 end
@@ -80,7 +44,7 @@ end
 ---and sets the current buffer to the new element at the front
 function M.bprevious()
   M.sync()
-  local buffers = shift_left(M.buffers)
+  local buffers = utils.shift_left(M.buffers)
   vim.api.nvim_set_current_buf(buffers[1])
   M.buffers = buffers
 end
