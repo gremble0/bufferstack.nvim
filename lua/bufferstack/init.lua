@@ -21,7 +21,7 @@ end
 ---Updates the internal stack of buffers by shifting it to the right
 ---and sets the current buffer to the new element at the front
 function M.bnext()
-  M.buffers = utils.filter(M.buffers, vim.api.nvim_buf_is_valid)
+  M.buffers = vim.tbl_filter(vim.api.nvim_buf_is_valid, M.buffers)
   local buffers = utils.shift_right(M.buffers)
   vim.api.nvim_set_current_buf(buffers[1])
   M.buffers = buffers
@@ -30,7 +30,7 @@ end
 ---Updates the internal stack of buffers by shifting it to the left
 ---and sets the current buffer to the new element at the front
 function M.bprevious()
-  M.buffers = utils.filter(M.buffers, vim.api.nvim_buf_is_valid)
+  M.buffers = vim.tbl_filter(vim.api.nvim_buf_is_valid, M.buffers)
   local buffers = utils.shift_left(M.buffers)
   vim.api.nvim_set_current_buf(buffers[1])
   M.buffers = buffers

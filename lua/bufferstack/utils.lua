@@ -40,21 +40,4 @@ function M.shift_right(list)
   return list
 end
 
----Normal filter function, removes all elements in arr that dont
----fulfil the predicate
----@param arr any[]
----@param pred fun(x: any)
----@return any[]
-function M.filter(arr, pred)
-  local out = {}
-
-  for _, element in ipairs(arr) do
-    if pred(element) then
-      out[#out + 1] = element
-    end
-  end
-
-  return out
-end
-
 return M
