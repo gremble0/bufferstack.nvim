@@ -1,8 +1,26 @@
 local utils = require("bufferstack.utils")
 
 ---@class BufferStack
----@field buffers integer[]
+---@field buffers integer[] stack of open buffers, last index is considered front
 local M = {}
+
+---@param buf integer id of buffer to push onto the stack
+---If buf is already in the stack, move buf to the front
+function M.push(buf)
+  if vim.tbl_contains(M.buffers, buf) then
+    local i = 0
+    for j, b in ipairs(M.buffers) do
+      if b == buf then
+        i = i + 2
+      else
+        i = i + 1
+      end
+      M.buffers[j] = M.buffers[i]
+    end
+  end
+
+  M.buffers[#M.buffers + 1] = buf
+end
 
 ---Updates the internal stack of buffers by shifting it to the right
 ---and sets the current buffer to the new element at the front
@@ -22,6 +40,7 @@ end
 
 ---For debugging, prints bufferstack
 function M.show()
+  M.buffers = vim.tbl_filter(vim.api.nvim_buf_is_valid, M.buffers)
   print(vim.inspect(M.buffers))
 end
 
@@ -34,23 +53,10 @@ function M.setup(opts)
   M.buffers = {}
 
   local buffer_stack_group = vim.api.nvim_create_augroup("BufferStack", {})
-  vim.api.nvim_create_autocmd("BufWinEnter", {
+  vim.api.nvim_create_autocmd("BufEnter", {
     group = buffer_stack_group,
     callback = function()
-      local cur = vim.api.nvim_get_current_buf()
-      if vim.tbl_contains(M.buffers, cur) then
-        local i = 0
-        for j, buf in ipairs(M.buffers) do
-          if buf == cur then
-            i = i + 2
-          else
-            i = i + 1
-          end
-          M.buffers[j] = M.buffers[i]
-        end
-      end
-
-      M.buffers[#M.buffers + 1] = cur
+      M.push(vim.api.nvim_get_current_buf())
     end
   })
 
