@@ -4,36 +4,25 @@ local utils = require("bufferstack.utils")
 ---@field buffers integer[]
 local M = {}
 
----Adds the buffer to the front of the internal stack of open buffers
----@param buffer integer
-function M.push_front(buffer)
-  local new_buffers = { buffer }
-
-  for i, buf in ipairs(M.buffers) do
-    if buf ~= buffer then
-      new_buffers[i + 1] = buf
-    end
-  end
-
-  M.buffers = new_buffers
+function M.sync()
+  M.buffers = vim.tbl_filter(vim.api.nvim_buf_is_valid, M.buffers)
 end
+
 
 ---Updates the internal stack of buffers by shifting it to the right
 ---and sets the current buffer to the new element at the front
 function M.bnext()
-  M.buffers = vim.tbl_filter(vim.api.nvim_buf_is_valid, M.buffers)
-  local buffers = utils.shift_right(M.buffers)
-  vim.api.nvim_set_current_buf(buffers[1])
-  M.buffers = buffers
+  M.sync()
+  M.buffers = utils.shift_left(M.buffers)
+  vim.api.nvim_set_current_buf(M.buffers[#M.buffers])
 end
 
 ---Updates the internal stack of buffers by shifting it to the left
 ---and sets the current buffer to the new element at the front
 function M.bprevious()
-  M.buffers = vim.tbl_filter(vim.api.nvim_buf_is_valid, M.buffers)
-  local buffers = utils.shift_left(M.buffers)
-  vim.api.nvim_set_current_buf(buffers[1])
-  M.buffers = buffers
+  M.sync()
+  M.buffers = utils.shift_right(M.buffers)
+  vim.api.nvim_set_current_buf(M.buffers[#M.buffers])
 end
 
 ---@class BufferStackOpts
@@ -47,7 +36,12 @@ function M.setup(opts)
   local buffer_stack_group = vim.api.nvim_create_augroup("BufferStack", {})
   vim.api.nvim_create_autocmd("BufWinEnter", {
     group = buffer_stack_group,
-    callback = function() M.push_front(vim.api.nvim_get_current_buf()) end
+    callback = function()
+      local cur = vim.api.nvim_get_current_buf()
+      if not vim.tbl_contains(M.buffers, cur) then
+        M.buffers[#M.buffers+1] = cur
+      end
+    end
   })
 
   if opts ~= nil then
