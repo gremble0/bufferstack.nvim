@@ -12,20 +12,20 @@ Use your favourite package manager to import the plugin (following is how to do 
 {
   "gremble0/bufferstack.nvim",
   opts = {
+    -- This is usually either vim.api.nvim_buffer_is_loaded or vim.api.nvim_buffer_is_valid,
+    -- alternatively you could make your own variant
+    filter_buffers_func = vim.api.nvim_buf_is_loaded,
     -- Set keybinds in normal mode for the two functions
     -- NOTE: these are optional, meaning you could assign 0, 1 or 2 of the keybinds
     bprevious = "<C-p>",
     bnext = "<C-n>",
   },
-  -- If you prefer to assign the keybinds manually (or want them in
-  -- more modes than just normal) you can set them yourself like this:
-  -- If you prefer you can set assign the keybinds manually:
-  config = function()
-    local bufferstack = require("bufferstack")
-    bufferstack.setup()
-    vim.keymap.set("n", "<C-p>", bufferstack.bprevious, { desc = "Changes to the previous buffer" })
-    vim.keymap.set("n", "<C-n>", bufferstack.bnext, { desc = "Changes to the next buffer" })
-    -- assign in other modes as well if you wish...
-  end
-},
+}
+
+-- If you want to assign the keybinds manually (or want them in more modes
+-- than just normal) you can omit them from `opts` and set them yourself like this:
+local bufferstack = require("bufferstack")
+vim.keymap.set("n", "<C-p>", bufferstack.bprevious, { desc = "Changes to the previous buffer" })
+vim.keymap.set("n", "<C-n>", bufferstack.bnext, { desc = "Changes to the next buffer" })
+-- assign in other modes as well if you wish...
 ```
