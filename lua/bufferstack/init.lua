@@ -45,14 +45,19 @@ function M.show()
   print(vim.inspect(M.buffers))
 end
 
----@class BufferStackOpts
+---@class BufferStackConfig
 ---@field bprevious? string keybind to use for the bprevious command
 ---@field bnext? string keybind to use for the bnext command
 ---@field filter_buffers_func? fun(int): boolean function to use as a predicate to sync the bufferstack
 
----@param opts BufferStackOpts
+---@type BufferStackConfig
+local default_config = {
+  filter_buffers_func = vim.api.nvim_buf_is_loaded,
+}
+
+---@param opts BufferStackConfig
 function M.setup(opts)
-  opts = opts or {}
+  opts = vim.tbl_deep_extend("keep", opts or {}, default_config)
   M.buffers = {}
 
   local buffer_stack_group = vim.api.nvim_create_augroup("BufferStack", {})
@@ -63,13 +68,12 @@ function M.setup(opts)
     end
   })
 
-  M.filter_buffers_func = opts.filter_buffers_func or vim.api.nvim_buf_is_loaded
-
+  M.filter_buffers_func = opts.filter_buffers_func
   -- in case the user only wants one of these functions we make them nullable
   if opts.bprevious ~= nil then
     vim.keymap.set("n", opts.bprevious, M.bprevious, { desc = "Changes to the previous buffer" })
   end
-  if opts.bprevious ~= nil then
+  if opts.bnext ~= nil then
     vim.keymap.set("n", opts.bnext, M.bnext, { desc = "Changes to the next buffer" })
   end
 end
