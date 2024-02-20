@@ -68,7 +68,11 @@ function M.setup(opts)
     end
   })
 
+  vim.api.nvim_create_user_command("Bprevious", M.bprevious, {})
+  vim.api.nvim_create_user_command("Bnext", M.bnext, {})
+
   M.filter_buffers_func = opts.filter_buffers_func
+
   -- in case the user only wants one of these functions we make them nullable
   if opts.bprevious ~= nil then
     vim.keymap.set("n", opts.bprevious, M.bprevious, { desc = "Changes to the previous buffer" })
