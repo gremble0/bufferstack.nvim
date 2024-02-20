@@ -9,7 +9,7 @@ With this plugin if you were in this same scenario, and you invoked `require("bu
 The plugin also allows for keeping track of more buffers than the normal buffer list in vim through the `filter_buffers_func` option. If you set this to `vim.api.nvim_buffer_is_valid` it will keep unloaded buffers in the bufferstack allowing you to reopen them with the bprevious command. If you don't set this option it will use `vim.api.nvim_buf_is_loaded` which will only select from the loaded buffers visible when you do `:buffers`
 
 ## Setup
-Use your favourite package manager to import the plugin (following is how to do it with lazy.nvim) *Important: Do not lazy load this plugin*, it needs to call setup() immediately to keep track of what order buffers have been opened in.
+Use your favourite package manager to import the plugin **Important: Do not lazy load this plugin**, it needs to call setup() immediately to keep track of what order buffers have been opened in. Following is how to do it with lazy.nvim
 ```lua
 {
   "gremble0/bufferstack.nvim",
@@ -25,7 +25,7 @@ Use your favourite package manager to import the plugin (following is how to do 
 }
 
 -- If you want to assign the keybinds manually (or want them in more modes
--- than just normal) you can omit them from `opts` and set them yourself like this:
+-- than just normal) you can omit them from `opts` and require them manually
 local bufferstack = require("bufferstack")
 vim.keymap.set({ "n", "v" }, "<C-p>", bufferstack.bprevious, { desc = "Changes to the previous buffer" })
 vim.keymap.set({ "n", "v" }, "<C-n>", bufferstack.bnext, { desc = "Changes to the next buffer" })
