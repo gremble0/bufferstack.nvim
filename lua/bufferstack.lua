@@ -1,9 +1,10 @@
-local utils = require("bufferstack.utils")
-
 ---@class BufferStack
 ---@field buffers integer[] stack of open buffers, last index is considered front
----@field filter_buffers_func fun(int): boolean function to use as a predicate to sync the bufferstack
-local M = {}
+---@field filter_buffers_func? fun(int): boolean function to use as a predicate to sync the bufferstack
+local M = {
+  buffers = {},
+  filter_buffers_func = vim.api.nvim_buf_is_loaded,
+}
 
 ---@param buf integer id of buffer to push onto the stack
 ---If buf is already in the stack, move buf to the front
@@ -27,7 +28,18 @@ end
 ---and sets the current buffer to the new element at the front
 function M.bnext()
   M.buffers = vim.tbl_filter(M.filter_buffers_func, M.buffers)
-  M.buffers = utils.shift_left(M.buffers)
+  if #M.buffers <= 1 then
+    return M.buffers
+  end
+
+  local first = M.buffers[1]
+
+  for i = 1, #M.buffers - 1 do
+    M.buffers[i] = M.buffers[i + 1]
+  end
+
+  M.buffers[#M.buffers] = first
+
   vim.api.nvim_set_current_buf(M.buffers[#M.buffers])
 end
 
@@ -35,14 +47,19 @@ end
 ---and sets the current buffer to the new element at the front
 function M.bprevious()
   M.buffers = vim.tbl_filter(M.filter_buffers_func, M.buffers)
-  M.buffers = utils.shift_right(M.buffers)
-  vim.api.nvim_set_current_buf(M.buffers[#M.buffers])
-end
+  if #M.buffers <= 1 then
+    return M.buffers
+  end
 
----For debugging, prints bufferstack
-function M.show()
-  M.buffers = vim.tbl_filter(M.filter_buffers_func, M.buffers)
-  print(vim.inspect(M.buffers))
+  local last = M.buffers[#M.buffers]
+
+  for i = #M.buffers, 2, -1 do
+    M.buffers[i] = M.buffers[i - 1]
+  end
+
+  M.buffers[1] = last
+
+  vim.api.nvim_set_current_buf(M.buffers[#M.buffers])
 end
 
 ---@class BufferStackConfig
@@ -50,30 +67,26 @@ end
 ---@field bnext? string keybind to use for the bnext command
 ---@field filter_buffers_func? fun(int): boolean function to use as a predicate to sync the bufferstack
 
----@type BufferStackConfig
-local default_config = {
-  filter_buffers_func = vim.api.nvim_buf_is_loaded,
-}
-
----@param opts BufferStackConfig
+---@param opts? BufferStackConfig
 function M.setup(opts)
-  opts = vim.tbl_deep_extend("keep", opts or {}, default_config)
-  M.buffers = {}
-
   local buffer_stack_group = vim.api.nvim_create_augroup("BufferStack", {})
   vim.api.nvim_create_autocmd("BufEnter", {
     group = buffer_stack_group,
     callback = function()
       M.push(vim.api.nvim_get_current_buf())
-    end
+    end,
   })
 
   vim.api.nvim_create_user_command("Bprevious", M.bprevious, {})
   vim.api.nvim_create_user_command("Bnext", M.bnext, {})
 
-  M.filter_buffers_func = opts.filter_buffers_func
+  if opts == nil then
+    return
+  end
 
-  -- in case the user only wants one of these functions we make them nullable
+  if opts.filter_buffers_func ~= nil then
+    M.filter_buffers_func = opts.filter_buffers_func
+  end
   if opts.bprevious ~= nil then
     vim.keymap.set("n", opts.bprevious, M.bprevious, { desc = "Changes to the previous buffer" })
   end
